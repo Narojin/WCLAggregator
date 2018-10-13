@@ -1,34 +1,81 @@
 ﻿using System;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WCLAggregator
 {
-    public class Requester
+    public static class Requester
     {
         private static readonly HttpClient client = new HttpClient();
-        private string apiKey;
-
+        private static string apiKey;
+        
         //These handle class/spec specific requests for the rankings
-        private int classID;
-        private int specID;
 
         static Uri baseUri = new Uri("https://www.warcraftlogs.com/v1/");
-        Uri rankingsUri = new Uri(baseUri, "rankings/encounter/");
-
-        static private Requester instance;
+        static Uri rankingsUri = new Uri(baseUri, "rankings/encounter/");
         
-        Requester(string apiKey){
-            this.apiKey = apiKey;
+        public static void setApiKey(string apiKey){
+            Requester.apiKey = apiKey;
         }
 
-        private string makeRequest(Uri requestUri, HttpContent content){
-            //common logic for making requests goes here- including dictionary to httpcontent conversion
+        private static string makeRequest(Uri requestUri, Dictionary<string, string> content){
+            //common logic for making requests goes here- including dictionary to FormUrlEncodedContent conversion
             //and waiting for the request to finish
             
+            //add in translation and api key, required for all requests
+            content.Add("translate", "true");
+            content.Add("api_key", Requester.apiKey);
+
+            FormUrlEncodedContent parameters = new FormUrlEncodedContent(content);
+
             //this isn't done asynchronously yet- maybe todo later
-            HttpResponseMessage response = client.PostAsync(requestUri, content).Result;
+            HttpResponseMessage response = client.PostAsync(requestUri, parameters).Result;
             return response.Content.ReadAsStringAsync().Result;
         }
+
+        public static List<Ranking> getRankings(Dictionary<string, string> parameters, int numberOfRanks, int encounterID) {
+            //for getting a single encounter
+            
+            return getRankingPage(parameters, numberOfRanks, encounterID, 1);
+        }
+
+        public static List<Ranking> getRankings(Dictionary<string, string> parameters, int numberOfRanks, List<int> encounterIDs){
+            //for getting multiple encounters
+
+            List<Ranking> ranks = new List<Ranking>();
+            foreach (int encounter in encounterIDs)
+            {
+                ranks.AddRange(getRankings(parameters, numberOfRanks, encounter));
+            }
+            return ranks;
+        }
+
+        public static List<Ranking> getRankingPage(Dictionary<string, string> parameters, int numberOfRanks, int encounterID, int page){
+            
+            parameters["page"] = page.ToString();
+
+            string rankString = makeRequest(Requester.rankingsUri, parameters);
+
+
+            RankingContainer container = JsonConvert.DeserializeObject<RankingContainer>(rankString);
+            List<Ranking> ranks = container.getRankings();
+
+            //We need to truncate the list down to the number requested if it is greater
+            if(numberOfRanks < ranks.Count) {
+                ranks = ranks.Take(numberOfRanks).ToList();
+            }
+
+            //Because the api returns only 100 ranks every request, we need to check
+            //how many ranks are left and make another call for them
+            int ranksLeft = container.getRankingsLeft(numberOfRanks);
+            if(ranksLeft > 0){
+                ranks.AddRange(getRankingPage(parameters, ranksLeft, encounterID, page + 1));
+            }
+            return ranks;
+        }
+
+        
     }
 }
