@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 
 namespace WCLAggregator
 {
@@ -23,21 +24,30 @@ namespace WCLAggregator
         private static string makeRequest(Uri requestUri, Dictionary<string, string> content){
             //common logic for making requests goes here- including dictionary to FormUrlEncodedContent conversion
             //and waiting for the request to finish
-            
+
             //add in translation and api key, required for all requests
             content.Add("translate", "true");
             content.Add("api_key", Requester.apiKey);
 
-            FormUrlEncodedContent parameters = new FormUrlEncodedContent(content);
+            //plug parameters into uri
 
+            string requestUriString = requestUri.ToString() + "?";
+
+            foreach (string key in content.Keys)
+            {
+                requestUriString = requestUriString + HttpUtility.UrlEncode(key) + "=" + HttpUtility.UrlEncode(content[key]) + "&";
+            }
+            requestUriString = requestUriString.TrimEnd('&');
+            requestUri = new Uri(requestUriString);
+            
             //this isn't done asynchronously yet- maybe todo later
-            HttpResponseMessage response = client.PostAsync(requestUri, parameters).Result;
+            HttpResponseMessage response = client.GetAsync(requestUri).Result;
             return response.Content.ReadAsStringAsync().Result;
         }
 
         public static List<Ranking> getRankings(Dictionary<string, string> parameters, int numberOfRanks, int encounterID) {
             //for getting a single encounter
-            
+
             return getRankingPage(parameters, numberOfRanks, encounterID, 1);
         }
 
@@ -56,11 +66,11 @@ namespace WCLAggregator
             
             parameters["page"] = page.ToString();
 
-            string rankString = makeRequest(Requester.rankingsUri, parameters);
+            Uri requestUri = new Uri(Requester.rankingsUri, encounterID.ToString());
 
-
+            string rankString = makeRequest(requestUri, parameters);
             RankingContainer container = JsonConvert.DeserializeObject<RankingContainer>(rankString);
-            List<Ranking> ranks = container.getRankings();
+            List<Ranking> ranks = container.rankings;
 
             //We need to truncate the list down to the number requested if it is greater
             if(numberOfRanks < ranks.Count) {

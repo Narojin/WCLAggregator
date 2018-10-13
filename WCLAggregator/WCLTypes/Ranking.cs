@@ -5,7 +5,7 @@ namespace WCLAggregator
 {
     public class Ranking
     {
-        string name;
+        public string name;
         int @class;
         int spec;
         int total;

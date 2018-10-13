@@ -4,8 +4,8 @@ namespace WCLAggregator{
     public class RankingContainer{
         int page;
         bool hasMorePages;
-        int count;
-        List<Ranking> rankings;
+        public int count;
+        public List<Ranking> rankings;
         
         public int getRankingsLeft(int ranks) {
             ranks = ranks - this.count;
@@ -15,9 +15,6 @@ namespace WCLAggregator{
             return ranks;
         }
 
-        public List<Ranking> getRankings(){
-            return this.rankings;
-        }
     }
 
 }
