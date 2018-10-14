@@ -16,7 +16,8 @@ namespace WCLAggregator
 
         static Uri baseUri = new Uri("https://www.warcraftlogs.com/v1/");
         static Uri rankingsUri = new Uri(baseUri, "rankings/encounter/");
-        
+        static Uri fightsUri = new Uri(baseUri, "report/fights");
+
         public static void setApiKey(string apiKey){
             Requester.apiKey = apiKey;
         }
@@ -84,6 +85,17 @@ namespace WCLAggregator
                 ranks.AddRange(getRankingPage(parameters, ranksLeft, encounterID, page + 1));
             }
             return ranks;
+        }
+
+        public static FightInfo getFightInfo(Ranking ranking){
+            //Todo: make this not get called twice if the same ranking pops up twice- maybe do that somewhere else?
+            Uri requestUri = new Uri(Requester.fightsUri, ranking.reportID);
+
+            string requestString = makeRequest(requestUri, new Dictionary<string, string>());
+
+            FightInfo info = JsonConvert.DeserializeObject<FightInfo>(requestString);
+            return info;
+
         }
 
         

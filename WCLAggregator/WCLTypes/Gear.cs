@@ -1,9 +1,9 @@
 namespace WCLAggregator
 {
     public class Gear {
-        string name;
-        string quality;
-        int id;
-        string icon;
+        public string name {get;}
+        public string quality {get;}
+        public int id {get;}
+        public string icon {get;}
     }
 }

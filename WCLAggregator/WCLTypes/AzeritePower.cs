@@ -1,8 +1,8 @@
 namespace WCLAggregator{
 public class AzeritePower{
-    string name;
-    int id;
-    string icon;
-    int ring;
+    public string name {get;}
+    public int id {get;}
+    public string icon {get;}
+    public int ring {get;}
 }
 }

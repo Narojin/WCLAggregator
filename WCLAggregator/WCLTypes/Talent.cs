@@ -2,8 +2,8 @@ namespace WCLAggregator
 
 {
     public class Talent{
-        string name;
-        int id;
-        string icon;
+        public string name {get;}
+        public int id {get;}
+        public string icon {get;}
     }
 }
