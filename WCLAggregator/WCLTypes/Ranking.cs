@@ -8,10 +8,10 @@ namespace WCLAggregator
         public string name {get;}
         public int @class {get;}
         public int spec {get;}
-        public int total {get;}
+        public float total {get;}
         public int duration {get;}
-        public int startTime {get;}
-        public int fightID {get;}
+        public UInt64 startTime {get;}
+        public UInt64 fightID {get;}
         public string reportID {get;}
         public string guildName {get;}
         public string serverName {get;}

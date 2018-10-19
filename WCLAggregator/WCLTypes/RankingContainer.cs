@@ -2,10 +2,10 @@ using System.Collections.Generic;
 namespace WCLAggregator{
 
     public class RankingContainer{
-        public int page {get;}
-        public bool hasMorePages {get;}
-        public int count {get;}
-        public List<Ranking> rankings {get;}
+        public int page {get; set;}
+        public bool hasMorePages {get; set;}
+        public int count {get; set;}
+        public List<Ranking> rankings {get; set;}
         
         public int getRankingsLeft(int ranks) {
             ranks = ranks - this.count;

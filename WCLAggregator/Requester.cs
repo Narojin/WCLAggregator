@@ -1,5 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,33 @@ namespace WCLAggregator
         static Uri rankingsUri = new Uri(baseUri, "rankings/encounter/");
         static Uri fightsUri = new Uri(baseUri, "report/fights");
 
+        static Dictionary<string, Type> eventTypes = new Dictionary<string, Type>()
+        { 
+            {"ability", typeof(EventAbility)},
+            {"absorbed", typeof(EventAbsorbed)},
+            {"applybuff", typeof(EventApplyBuff)},
+            {"applybuffstack", typeof(EventApplyBuffStack)},
+            {"applydebuff", typeof(EventApplyDebuff)},
+            {"begincast", typeof(EventBeginCast)},
+            {"cast", typeof(EventCast)},
+            {"combatantinfo", typeof(EventCombatantInfo)},
+            {"damage", typeof(EventDamage)},
+            {"energize", typeof(EventEnergize)},
+            {"heal", typeof(EventHeal)},
+            {"refreshbuff", typeof(EventRefreshBuff)},
+            {"removebuff", typeof(EventRemoveBuff)},
+            {"removedebuff", typeof(EventRemoveDebuff)},
+            {"summon", typeof(EventSummon)} 
+        }
+        ;
+
+
+        public static List<EventBase> parseEvents(string eventsString) {
+            JObject eventsContainer = JObject.Parse(eventsString);
+            List<JToken> eventsList = eventsContainer.GetValue("events").ToList();
+            return eventsList.Select(x => x.ToObject(eventTypes[x["type"].ToString()])).Cast<EventBase>().ToList();
+        }
+
         public static void setApiKey(string apiKey){
             Requester.apiKey = apiKey;
         }
@@ -27,8 +55,8 @@ namespace WCLAggregator
             //and waiting for the request to finish
 
             //add in translation and api key, required for all requests
-            content.Add("translate", "true");
-            content.Add("api_key", Requester.apiKey);
+            content["translate"] = "true";
+            content["api_key"] = Requester.apiKey;
 
             //plug parameters into uri
 
